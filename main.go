@@ -8,6 +8,7 @@ import (
 
 	"mod.org/shellit/cmds"
 	"mod.org/shellit/logger"
+	"mod.org/shellit/parser"
 )
 
 func main() {
@@ -69,8 +70,14 @@ func parseInput(cmds map[string]logger.Cmd, s string) any {
 	}
 
 	// check if the input contains operators > or |
-	if strings.Contains(s, ">") || strings.Contains(s, ">>") || strings.Contains(s, "<") {
-		return parseWithOperators(cmds, s)
+	if strings.Contains(s, ">") || strings.Contains(s, ">>") || strings.Contains(s, "|") {
+		out, err := parser.Parse(cmds, s)
+		if err != nil {
+			return err.Error()
+		}
+		logger.Log(out)
+		return ""
+		//return parseWithOperators(cmds, s)
 	}
 
 	cargs := strings.Split(s, " ")
