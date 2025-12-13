@@ -42,6 +42,11 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 	}
 
 	stream = sanitize(stream)
+
+	if stream == "" {
+		return nil, nil, errors.New(stream)
+	}
+
 	if !strings.Contains(stream, ">") && !strings.Contains(stream, "$") && !strings.Contains(stream, "|") {
 		return [][]string{strings.Split(stream, " ")}, nil, nil
 	}
@@ -80,6 +85,12 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 func sanitize(str string) string {
 	i, out := 0, ""
 	str = strings.TrimSpace(str)
+
+	// check if input is empty
+	if len(str) == 0 {
+		return str
+	}
+
 	for {
 		if i >= len(str)-1 {
 			break

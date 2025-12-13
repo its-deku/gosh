@@ -78,11 +78,12 @@ func parseInput(cmds map[string]logger.Cmd, s string) any {
 
 	out, delim, err := parser.Parse(cmds, s)
 
+	if err != nil {
+		return err.Error()
+	}
+
 	// check if the input contains operators > or |
 	if strings.Contains(s, ">") || strings.Contains(s, ">>") || strings.Contains(s, "|") {
-		if err != nil {
-			return err.Error()
-		}
 
 		prev := ""
 		for i := range out {
