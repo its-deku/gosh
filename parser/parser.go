@@ -48,8 +48,17 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 	}
 
 	if !strings.Contains(stream, ">") && !strings.Contains(stream, "$") && !strings.Contains(stream, "|") {
-		return [][]string{strings.Split(stream, " ")}, nil, nil
+		arr := []string{}
+		for str := range strings.SplitSeq(stream, " ") {
+			if str != "" && str != " " {
+				arr = append(arr, str)
+			}
+		}
+
+		return [][]string{arr}, nil, nil
 	}
+
+	logger.Log("op present")
 
 	// check if the stream starts/ends with an operator
 	if tokens[string(stream[0])] || tokens[string(stream[len(stream)-1])] {
