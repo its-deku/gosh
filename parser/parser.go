@@ -20,7 +20,7 @@ func getDelim(toks map[string]bool, s string) (int, string) {
 	return ind, delim
 }
 
-func parseTokAndCmd(toks map[string]bool, comb string) []string {
+func parseTokAndCmd(toks map[string]bool, comb string) ([]string, string) {
 	comb = strings.TrimSpace(comb)
 	ind, delim := getDelim(toks, comb)
 
@@ -31,10 +31,10 @@ func parseTokAndCmd(toks map[string]bool, comb string) []string {
 	command = append(command, " "+delim+" ")
 	command = append(command, strings.TrimSpace(comb[ind+1:]))
 
-	return command
+	return command, delim
 }
 
-func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, error) {
+func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, error) {
 	tokens := map[string]bool{
 		">": true,
 		"$": true, // substitute for >>
@@ -42,10 +42,13 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, error) {
 	}
 
 	stream = sanitize(stream)
+	if !strings.Contains(stream, ">") && !strings.Contains(stream, "$") && !strings.Contains(stream, "|") {
+		return [][]string{strings.Split(stream, " ")}, nil, nil
+	}
 
 	// check if the stream starts/ends with an operator
 	if tokens[string(stream[0])] || tokens[string(stream[len(stream)-1])] {
-		return nil, errors.New("not a super valid command")
+		return nil, nil, errors.New("not a super valid command")
 	}
 
 	// store the individual commands seperately
@@ -64,11 +67,14 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, error) {
 	}
 	parts = append(parts, stream[pInd:])
 
+	delim := []string{}
 	out := [][]string{}
 	for _, v := range parts {
-		out = append(out, parseTokAndCmd(tokens, v))
+		arr, del := parseTokAndCmd(tokens, v)
+		out = append(out, arr)
+		delim = append(delim, del)
 	}
-	return out, nil
+	return out, delim, nil
 }
 
 func sanitize(str string) string {

@@ -106,7 +106,7 @@ func appendToFile(file string, data []byte) string {
 
 	_, err = f.Write(data)
 	if err != nil {
-		logger.Log("while appendign :()")
+		logger.Log("while appending :()")
 		return err.Error()
 	}
 	f.Close()

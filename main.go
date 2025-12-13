@@ -44,22 +44,7 @@ func getInput() (string, error) {
 	return inp, nil
 }
 
-func parseWithOperators(commands map[string]logger.Cmd, s string) any {
-	var delim string
-	if strings.Contains(s, ">") {
-		delim = ">"
-	}
-	if strings.Contains(s, ">>") {
-		delim = ">>"
-	}
-	if strings.Contains(s, "<") {
-		delim = "<"
-	}
-	return cmds.Redirect(commands, s, delim)
-}
-
-func parseInput(cmds map[string]logger.Cmd, s string) any {
-
+func runCmd(cmds map[string]logger.Cmd, cargs []string) string {
 	// commands and args map
 	cmdInfo := map[string]int{
 		"ls":    3,
@@ -69,29 +54,16 @@ func parseInput(cmds map[string]logger.Cmd, s string) any {
 		"echo":  3,
 	}
 
-	// check if the input contains operators > or |
-	if strings.Contains(s, ">") || strings.Contains(s, ">>") || strings.Contains(s, "|") {
-		out, err := parser.Parse(cmds, s)
-		if err != nil {
-			return err.Error()
-		}
-		logger.Log(out)
-		return ""
-		//return parseWithOperators(cmds, s)
-	}
-
-	cargs := strings.Split(s, " ")
 	_, found := cmds[cargs[0]]
 	if !found {
 		logger.Log("Command not found!")
-		return false
+		return ""
 	}
 
 	ln := len(cargs)
 	if cmdInfo[cargs[0]] != 3 {
 		if cmdInfo[cargs[0]] != ln-1 {
-			logger.Log("too many arguments...")
-			return false
+			return "too many arguments..."
 		}
 	}
 
@@ -100,4 +72,30 @@ func parseInput(cmds map[string]logger.Cmd, s string) any {
 	}
 
 	return cmds[cargs[0]](cargs[1:])
+}
+
+func parseInput(cmds map[string]logger.Cmd, s string) any {
+
+	out, delim, err := parser.Parse(cmds, s)
+
+	// check if the input contains operators > or |
+	if strings.Contains(s, ">") || strings.Contains(s, ">>") || strings.Contains(s, "|") {
+		if err != nil {
+			return err.Error()
+		}
+
+		prev := ""
+		for i := range out {
+			if i != 0 {
+				for v := range strings.SplitSeq(prev, " ") {
+					out[i] = append(out[i], v)
+				}
+			}
+			prev = runCmd(cmds, out[i])
+		}
+
+		logger.Log(delim)
+	}
+
+	return runCmd(cmds, out[0])
 }
