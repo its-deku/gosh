@@ -77,7 +77,12 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 		return cmd[cargs[0]](cargs[1:])
 	}
 
-	return cmds.Redirect(cmd, cargs, delim)
+	// handle commands with redirect operators
+	opInd := logger.FindStr(delim, cargs)
+	preCmd := cargs[:opInd]
+	output := cmd[preCmd[0]](preCmd[1:])
+
+	return cmds.Redirect(output, delim, cargs[opInd+1:])
 }
 
 func parseInput(cmds map[string]logger.Cmd, s string) any {
