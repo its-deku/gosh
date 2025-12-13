@@ -44,7 +44,7 @@ func getInput() (string, error) {
 	return inp, nil
 }
 
-func runCmd(cmds map[string]logger.Cmd, cargs []string) string {
+func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 	// commands and args map
 	cmdInfo := map[string]int{
 		"ls":    3,
@@ -54,8 +54,9 @@ func runCmd(cmds map[string]logger.Cmd, cargs []string) string {
 		"echo":  3,
 	}
 
-	_, found := cmds[cargs[0]]
+	_, found := cmd[cargs[0]]
 	if !found {
+		logger.Log(cargs[0])
 		logger.Log("Command not found!")
 		return ""
 	}
@@ -68,10 +69,15 @@ func runCmd(cmds map[string]logger.Cmd, cargs []string) string {
 	}
 
 	if ln == 1 {
-		return cmds[cargs[0]]([]string{"."})
+		return cmd[cargs[0]]([]string{"."})
 	}
 
-	return cmds[cargs[0]](cargs[1:])
+	// check for operators
+	if delim != ">" && delim != "$" {
+		return cmd[cargs[0]](cargs[1:])
+	}
+
+	return cmds.Redirect(cmd, cargs, delim)
 }
 
 func parseInput(cmds map[string]logger.Cmd, s string) any {
@@ -81,22 +87,12 @@ func parseInput(cmds map[string]logger.Cmd, s string) any {
 	if err != nil {
 		return err.Error()
 	}
+	logger.Log(out)
 
 	// check if the input contains operators > or |
 	if strings.Contains(s, ">") || strings.Contains(s, ">>") || strings.Contains(s, "|") {
-
-		prev := ""
-		for i := range out {
-			if i != 0 {
-				for v := range strings.SplitSeq(prev, " ") {
-					out[i] = append(out[i], v)
-				}
-			}
-			prev = runCmd(cmds, out[i])
-		}
-
-		logger.Log(delim)
+		return runCmd(cmds, out[0], delim[0])
 	}
 
-	return runCmd(cmds, out[0])
+	return runCmd(cmds, out[0], "N")
 }

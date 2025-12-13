@@ -25,9 +25,13 @@ func parseTokAndCmd(toks map[string]bool, comb string) ([]string, string) {
 	ind, delim := getDelim(toks, comb)
 
 	command := []string{}
-	if ind != 0 {
-		command = append(command, strings.TrimSpace(comb[:ind]))
+	// seperates command and args before the operator
+	for str := range strings.SplitSeq(sanitize(comb[:ind]), " ") {
+		command = append(command, str)
 	}
+	// if ind != 0 {
+	// command = append(command, cmdPre)
+	// }
 	command = append(command, " "+delim+" ")
 	command = append(command, strings.TrimSpace(comb[ind+1:]))
 
@@ -57,8 +61,6 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 
 		return [][]string{arr}, nil, nil
 	}
-
-	logger.Log("op present")
 
 	// check if the stream starts/ends with an operator
 	if tokens[string(stream[0])] || tokens[string(stream[len(stream)-1])] {

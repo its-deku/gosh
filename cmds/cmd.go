@@ -116,16 +116,16 @@ func appendToFile(file string, data []byte) string {
 	return ""
 }
 
-func Redirect(commands map[string]logger.Cmd, s string, delim string) string {
-	ind := strings.Index(s, delim)
-	cmd := strings.Split(s[:ind], " ")
-	file := strings.Split(s[ind+1:], " ")[1:]
+func Redirect(commands map[string]logger.Cmd, s []string, delim string) string {
+	ind := logger.FindStr(delim, s)
+	cmd := s[0]
+	file := s[ind+1:]
 
 	if len(file) > 2 {
 		return "Only one file can be specified!"
 	}
 
-	cmdOut := commands[cmd[0]](cmd[1 : len(cmd)-1])
+	cmdOut := commands[cmd](file)
 	files := strings.Split(Ls([]string{"."}), " ")
 
 	isPresent := slices.Contains(files, file[0])
@@ -139,6 +139,8 @@ func Redirect(commands map[string]logger.Cmd, s string, delim string) string {
 	if len(fileCreate) > 1 {
 		return "Issue with file creation!"
 	}
+
+	logger.Log(file[0])
 
 	if delim == ">" {
 		return overWrite(file[0], []byte(cmdOut+"\n"))
