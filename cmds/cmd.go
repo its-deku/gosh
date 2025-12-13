@@ -2,7 +2,6 @@ package cmds
 
 import (
 	"os"
-	"os/exec"
 	"slices"
 	"strings"
 
@@ -81,11 +80,15 @@ func Touch(args []string) string {
 }
 
 func Clear(args []string) string {
-	cmd := exec.Command("clear", args...)
-	err := cmd.Run()
-	if err != nil {
-		return err.Error()
-	}
+	// cmd := exec.Command("tput", "clear")
+	// rows, err := cmd.Output()
+	// if err != nil {
+	// 	return err.Error()
+	// }
+	// for row := 0; row <= int(rows[0]); row++ {
+	// 	logger.Log("\n")
+	// }
+	logger.Log("\033[2J\033[H")
 	return ""
 }
 
