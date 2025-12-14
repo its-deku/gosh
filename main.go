@@ -73,7 +73,7 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 	}
 
 	// check for operators
-	if delim != ">" && delim != "$" {
+	if delim != ">" && delim != "$" && delim != "|" {
 		return cmd[cargs[0]](cargs[1:])
 	}
 
@@ -82,12 +82,17 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 	preCmd := cargs[:opInd]
 	output := cmd[preCmd[0]](preCmd[1:])
 
-	return cmds.Redirect(output, delim, cargs[opInd+1:])
+	isPipe := false
+	if delim == "|" {
+		isPipe = true
+	}
+
+	return cmds.Redirect(cmd, output, delim, cargs[opInd+1:], isPipe)
 }
 
-func parseInput(cmds map[string]logger.Cmd, s string) any {
+func parseInput(cmd map[string]logger.Cmd, s string) any {
 
-	out, delim, err := parser.Parse(cmds, s)
+	out, delim, err := parser.Parse(cmd, s)
 
 	if err != nil {
 		return err.Error()
@@ -95,9 +100,25 @@ func parseInput(cmds map[string]logger.Cmd, s string) any {
 	logger.Log(out)
 
 	// check if the input contains operators > or |
-	if strings.Contains(s, ">") || strings.Contains(s, ">>") || strings.Contains(s, "|") {
-		return runCmd(cmds, out[0], delim[0])
+	if strings.Contains(s, ">") || strings.Contains(s, "$") || strings.Contains(s, "|") {
+		prev := "" // stores output of previous command, useful for chaining
+		for i, curr := range out {
+			if curr[0] == ">" || curr[0] == "$" || curr[0] == "|" {
+				arr := []string{}
+				arr = append(arr, prev)
+
+				if curr[0] == "|" {
+					prev = cmd[curr[1]](arr)
+				} else {
+					prev = cmds.Redirect(cmd, prev, curr[0], []string{curr[1]}, false)
+				}
+			} else {
+				prev = runCmd(cmd, curr, delim[i])
+			}
+		}
+		return prev
+		// return runCmd(cmds, out[0], delim[0])
 	}
 
-	return runCmd(cmds, out[0], "N")
+	return runCmd(cmd, out[0], "N")
 }

@@ -116,7 +116,12 @@ func appendToFile(file string, data []byte) string {
 	return ""
 }
 
-func Redirect(data string, delim string, fileName []string) string {
+func Redirect(cmd map[string]logger.Cmd, data string, delim string, fileName []string, isPipe bool) string {
+
+	// check if it is a pipe
+	if isPipe {
+		return cmd[fileName[0]](strings.Split(data, " "))
+	}
 
 	if len(fileName) > 2 {
 		return "Only one file can be specified!"

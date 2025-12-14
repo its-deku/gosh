@@ -26,13 +26,15 @@ func parseTokAndCmd(toks map[string]bool, comb string) ([]string, string) {
 
 	command := []string{}
 	// seperates command and args before the operator
-	for str := range strings.SplitSeq(sanitize(comb[:ind]), " ") {
-		command = append(command, str)
+	if ind != 0 {
+		for str := range strings.SplitSeq(sanitize(comb[:ind]), " ") {
+			if str != "" && str != " " {
+				command = append(command, str)
+			}
+		}
 	}
-	// if ind != 0 {
-	// command = append(command, cmdPre)
-	// }
-	command = append(command, " "+delim+" ")
+
+	command = append(command, delim)
 	command = append(command, strings.TrimSpace(comb[ind+1:]))
 
 	return command, delim
