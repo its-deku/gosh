@@ -49,11 +49,11 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 	// commands and args map
 	cmdInfo := map[string]int{
 		"ls":    3,
-		"pwd":   0,
-		"cd":    1,
+		"pwd":   1,
+		"cd":    2,
 		"touch": 3,
 		"echo":  3,
-		"sleep": 1,
+		"sleep": 2,
 	}
 
 	_, found := cmd[cargs[0]]
@@ -65,7 +65,7 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 
 	ln := len(cargs)
 	if cmdInfo[cargs[0]] != 3 {
-		if cmdInfo[cargs[0]] != ln-1 {
+		if cmdInfo[cargs[0]] < ln-1 && cmdInfo[cargs[0]] < 0 && delim == "N" {
 			return "too many arguments..."
 		}
 	}
@@ -76,7 +76,12 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 
 	// check for operators
 	if delim != ">" && delim != "$" && delim != "|" {
-		return cmd[cargs[0]](cargs[1:])
+		if cargs[ln-1] != "&" {
+			return cmd[cargs[0]](cargs[1:])
+		}
+		logger.Log("running command in background")
+		go cmd[cargs[0]](cargs[1 : ln-1])
+		return ""
 	}
 
 	// handle commands with redirect operators
@@ -95,6 +100,7 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 func parseInput(cmd map[string]logger.Cmd, s string) any {
 
 	out, delim, err := parser.Parse(cmd, s)
+	// logger.Log("delim = " + delim[0])
 
 	if err != nil {
 		return err.Error()
@@ -122,6 +128,8 @@ func parseInput(cmd map[string]logger.Cmd, s string) any {
 		return prev
 		// return runCmd(cmds, out[0], delim[0])
 	}
-
-	return runCmd(cmd, out[0], "N")
+	if len(delim) == 0 {
+		delim = append(delim, "N")
+	}
+	return runCmd(cmd, out[0], delim[0])
 }

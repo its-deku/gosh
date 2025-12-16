@@ -45,7 +45,6 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 		">": true,
 		"$": true, // substitute for >>
 		"|": true,
-		"&": true,
 	}
 
 	stream = sanitize(stream) // removes whitespace and replaces >> with $

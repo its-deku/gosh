@@ -11,8 +11,8 @@ import (
 	"mod.org/shellit/logger"
 )
 
-func Cd(dir []string) string {
-	err := os.Chdir(dir[0])
+func Cd(args []string) string {
+	err := os.Chdir(args[0])
 	if err != nil {
 		return err.Error()
 	}
@@ -42,6 +42,7 @@ func Echo(args []string) string {
 }
 
 func Sleep(args []string) string {
+	logger.Log(args)
 	duration, err := strconv.ParseInt(args[0], 10, 64)
 
 	if err != nil {
@@ -134,6 +135,7 @@ func Redirect(cmd map[string]logger.Cmd, data string, delim string, fileName []s
 
 	// check if it is a pipe
 	if isPipe {
+		logger.Log(fileName[0])
 		return cmd[fileName[0]](strings.Split(data, " "))
 	}
 
