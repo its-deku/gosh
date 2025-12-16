@@ -1,9 +1,12 @@
 package cmds
 
 import (
+	"fmt"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 
 	"mod.org/shellit/logger"
 )
@@ -36,6 +39,17 @@ func Echo(args []string) string {
 	}
 
 	return echo
+}
+
+func Sleep(args []string) string {
+	duration, err := strconv.ParseInt(args[0], 10, 64)
+
+	if err != nil {
+		logger.Log(err)
+	}
+
+	time.Sleep(time.Duration(duration) * time.Second)
+	return "slept for " + fmt.Sprint(duration) + " seconds"
 }
 
 func Ls(args []string) string {

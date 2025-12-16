@@ -19,6 +19,7 @@ func main() {
 		"touch": cmds.Touch,
 		"clear": cmds.Clear,
 		"echo":  cmds.Echo,
+		"sleep": cmds.Sleep,
 	}
 	// repl loop
 	for {
@@ -52,6 +53,7 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 		"cd":    1,
 		"touch": 3,
 		"echo":  3,
+		"sleep": 1,
 	}
 
 	_, found := cmd[cargs[0]]
@@ -104,6 +106,7 @@ func parseInput(cmd map[string]logger.Cmd, s string) any {
 		prev := "" // stores output of previous command, useful for chaining
 		for i, curr := range out {
 			if curr[0] == ">" || curr[0] == "$" || curr[0] == "|" {
+
 				arr := []string{}
 				arr = append(arr, prev)
 
