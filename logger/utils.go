@@ -1,12 +1,19 @@
 package logger
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type Job struct {
-	cmd      string
-	args     []string
-	operator string
-	opt      string
+	Cmd      string
+	Args     []string
+	Operator string
+	Opt      string
+}
+
+func PrintJob(j Job) {
+	fmt.Println("Cmd: "+j.Cmd, "Args: ", j.Args, "Operator: "+j.Operator, "Opt: "+j.Opt)
 }
 
 func FindStr(x string, s []string) int {

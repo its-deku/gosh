@@ -7,40 +7,70 @@ import (
 	"mod.org/shellit/logger"
 )
 
-func getDelim(toks map[string]bool, s string) (int, string) {
+func getDelim(toks map[string]bool, s string) int {
 	ind := -1
-	delim := ""
+	// delim := ""
 	for i, v := range s {
 		if toks[string(v)] {
-			delim = string(v)
+			// delim = string(v)
 			ind = i
 			break
 		}
 	}
-	return ind, delim
+	return ind
 }
 
-func parseTokAndCmd(toks map[string]bool, comb string) ([]string, string) {
+func parseTokAndCmd(toks map[string]bool, comb string, tok string) logger.Job {
+	logger.Log(comb)
 	comb = strings.TrimSpace(comb)
-	ind, delim := getDelim(toks, comb)
+	ind := getDelim(toks, comb)
 
-	command := []string{}
+	cmd := ""
+	ptr := 0
+	args := []string{}
+
 	// seperates command and args before the operator
-	if ind != 0 {
-		for str := range strings.SplitSeq(sanitize(comb[:ind]), " ") {
+	if ind == -1 {
+		for str := range strings.SplitSeq(sanitize(comb), " ") {
 			if str != "" && str != " " {
-				command = append(command, str)
+				if ptr == 0 && !toks[str] {
+					cmd = str
+					ptr += 1
+					continue
+				}
+				args = append(args, str)
+			}
+		}
+	} else {
+		for str := range strings.SplitSeq(sanitize(comb[ind:]), " ") {
+			if str != "" && str != " " {
+				args = append(args, str)
 			}
 		}
 	}
 
-	command = append(command, delim)
-	command = append(command, strings.TrimSpace(comb[ind+1:]))
+	opt := ""
+	if tok == ">" || tok == "$" {
+		if ind != 0 {
+			tok = ""
+		} else {
+			opt = args[1]
+			args = []string{}
+		}
+	}
 
-	return command, delim
+	job := logger.Job{
+		Cmd:      cmd,
+		Args:     args,
+		Operator: tok,
+		Opt:      opt,
+	}
+
+	logger.PrintJob(job)
+	return job
 }
 
-func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, error) {
+func Parse(cmds map[string]logger.Cmd, stream string) (logger.Job, error) {
 	tokens := map[string]bool{
 		">": true,
 		"$": true, // substitute for >>
@@ -50,9 +80,12 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 	stream = sanitize(stream) // removes whitespace and replaces >> with $
 
 	if stream == "" {
-		return nil, nil, errors.New(stream)
+		return logger.Job{}, errors.New(stream)
 	}
 
+	var job logger.Job
+
+	// commands without operators
 	if !strings.Contains(stream, ">") && !strings.Contains(stream, "$") && !strings.Contains(stream, "|") {
 		arr := []string{}
 		for str := range strings.SplitSeq(stream, " ") {
@@ -61,12 +94,15 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 			}
 		}
 
-		return [][]string{arr}, nil, nil
+		job.Cmd = arr[0]
+		job.Args = arr[1:]
+
+		return job, nil
 	}
 
 	// check if the stream starts/ends with an operator
 	if tokens[string(stream[0])] || tokens[string(stream[len(stream)-1])] {
-		return nil, nil, errors.New("not a super valid command")
+		return logger.Job{}, errors.New("not a super valid command")
 	}
 
 	// store the individual commands seperately
@@ -75,24 +111,30 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 	tok := ""
 	for i, s := range stream {
 		if tokens[string(s)] {
-			if len(tok) == 0 {
-				tok = string(s)
-			} else {
-				parts = append(parts, stream[pInd:i])
-				pInd = i
-			}
+			// if len(tok) == 0 {
+			// 	tok = string(s)
+			// } else {
+			// 	parts = append(parts, stream[pInd:i])
+			// 	pInd = i
+			// }
+			tok = string(s)
+			parts = append(parts, stream[pInd:i])
+			parseTokAndCmd(tokens, parts[len(parts)-1], string(stream[pInd]))
+			pInd = i
 		}
 	}
 	parts = append(parts, stream[pInd:])
+	parseTokAndCmd(tokens, parts[len(parts)-1], tok)
 
-	delim := []string{}
-	out := [][]string{}
-	for _, v := range parts {
-		arr, del := parseTokAndCmd(tokens, v)
-		out = append(out, arr)
-		delim = append(delim, del)
-	}
-	return out, delim, nil
+	// delim := []string{}
+	// out := [][]string{}
+	// for _, v := range parts {
+	// 	arr, del := parseTokAndCmd(tokens, v)
+	// 	out = append(out, arr)
+	// 	delim = append(delim, del)
+	// }
+	// return out, delim, nil
+	return logger.Job{}, nil
 }
 
 func sanitize(str string) string {

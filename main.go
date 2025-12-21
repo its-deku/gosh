@@ -104,37 +104,40 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 
 func parseInput(cmd map[string]logger.Cmd, s string) any {
 
-	out, delim, err := parser.Parse(cmd, s)
-	// logger.Log("delim = " + delim[0])
+	job, err := parser.Parse(cmd, s)
+	fmt.Println(job, err)
+	// out, delim, err := parser.Parse(cmd, s)
+	// // logger.Log("delim = " + delim[0])
 
-	if err != nil {
-		return err.Error()
-	}
-	logger.Log(out)
+	// if err != nil {
+	// 	return err.Error()
+	// }
+	// logger.Log(out)
 
-	// check if the input contains operators > or |
-	if strings.Contains(s, ">") || strings.Contains(s, "$") || strings.Contains(s, "|") {
-		prev := "" // stores output of previous command, useful for chaining
-		for i, curr := range out {
-			if curr[0] == ">" || curr[0] == "$" || curr[0] == "|" {
+	// // check if the input contains operators > or |
+	// if strings.Contains(s, ">") || strings.Contains(s, "$") || strings.Contains(s, "|") {
+	// 	prev := "" // stores output of previous command, useful for chaining
+	// 	for i, curr := range out {
+	// 		if curr[0] == ">" || curr[0] == "$" || curr[0] == "|" {
 
-				arr := []string{}
-				arr = append(arr, prev)
+	// 			arr := []string{}
+	// 			arr = append(arr, prev)
 
-				if curr[0] == "|" {
-					prev = cmd[curr[1]](arr)
-				} else {
-					prev = cmds.Redirect(cmd, prev, curr[0], []string{curr[1]}, false)
-				}
-			} else {
-				prev = runCmd(cmd, curr, delim[i])
-			}
-		}
-		return prev
-		// return runCmd(cmds, out[0], delim[0])
-	}
-	if len(delim) == 0 {
-		delim = append(delim, "N")
-	}
-	return runCmd(cmd, out[0], delim[0])
+	// 			if curr[0] == "|" {
+	// 				prev = cmd[curr[1]](arr)
+	// 			} else {
+	// 				prev = cmds.Redirect(cmd, prev, curr[0], []string{curr[1]}, false)
+	// 			}
+	// 		} else {
+	// 			prev = runCmd(cmd, curr, delim[i])
+	// 		}
+	// 	}
+	// 	return prev
+	// 	// return runCmd(cmds, out[0], delim[0])
+	// }
+	// if len(delim) == 0 {
+	// 	delim = append(delim, "N")
+	// }
+	// return runCmd(cmd, out[0], delim[0])
+	return "fuck"
 }
