@@ -96,7 +96,6 @@ func Parse(cmds map[string]logger.Cmd, stream string) ([][]string, []string, err
 }
 
 func sanitize(str string) string {
-	i, out := 0, ""
 	str = strings.TrimSpace(str)
 
 	// check if input is empty
@@ -104,17 +103,5 @@ func sanitize(str string) string {
 		return str
 	}
 
-	for {
-		if i >= len(str)-1 {
-			break
-		}
-		if string(str[i]) == ">" && string(str[i+1]) == ">" {
-			out += "$"
-			i += 1
-		} else {
-			out += string(str[i])
-		}
-		i += 1
-	}
-	return out + string(str[len(str)-1])
+	return strings.ReplaceAll(str, ">>", "$")
 }

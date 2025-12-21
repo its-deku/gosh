@@ -2,7 +2,7 @@ package logger
 
 import "strings"
 
-type job struct {
+type Job struct {
 	cmd      string
 	args     []string
 	operator string
