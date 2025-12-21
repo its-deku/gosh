@@ -42,7 +42,6 @@ func Echo(args []string) string {
 }
 
 func Sleep(args []string) string {
-	logger.Log(args)
 	duration, err := strconv.ParseInt(args[0], 10, 64)
 
 	if err != nil {

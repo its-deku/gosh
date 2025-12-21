@@ -76,6 +76,11 @@ func runCmd(cmd map[string]logger.Cmd, cargs []string, delim string) string {
 
 	// check for operators
 	if delim != ">" && delim != "$" && delim != "|" {
+
+		if logger.FindStr("&", cargs) == -1 {
+			return cmd[cargs[0]](cargs[1:])
+		}
+
 		if cargs[ln-1] != "&" {
 			return cmd[cargs[0]](cargs[1:])
 		}
