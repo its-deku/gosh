@@ -25,42 +25,49 @@ func parseTokAndCmd(toks map[string]bool, comb string, tok string) logger.Job {
 	comb = strings.TrimSpace(comb)
 	ind := getDelim(toks, comb)
 
-	cmd := ""
+	cmdOrOpt := ""
 	ptr := 0
 	args := []string{}
 
 	// seperates command and args before the operator
-	if ind == -1 {
-		for str := range strings.SplitSeq(sanitize(comb), " ") {
-			if str != "" && str != " " {
-				if ptr == 0 && !toks[str] {
-					cmd = str
-					ptr += 1
-					continue
-				}
-				args = append(args, str)
+	// if ind == -1 {
+	for str := range strings.SplitSeq(sanitize(comb), " ") {
+		if str != "" && str != " " {
+			if ptr == 0 && !toks[str] {
+				cmdOrOpt = str
+				ptr += 1
+				continue
 			}
-		}
-	} else {
-		for str := range strings.SplitSeq(sanitize(comb[ind:]), " ") {
-			if str != "" && str != " " {
-				args = append(args, str)
-			}
+			args = append(args, str)
 		}
 	}
+	// }
+	// else {
+	// 	for str := range strings.SplitSeq(sanitize(comb[ind:]), " ") {
+	// 		if str != "" && str != " " {
+	// 			args = append(args, str)
+	// 		}
+	// 	}
+	// }
 
 	opt := ""
-	if tok == ">" || tok == "$" {
+	switch tok {
+	case ">", "$":
 		if ind != 0 {
 			tok = ""
 		} else {
-			opt = args[1]
+			opt = cmdOrOpt
 			args = []string{}
 		}
+		cmdOrOpt = ""
+	case "|":
+		args = []string{}
+	default:
+		tok = ""
 	}
 
 	job := logger.Job{
-		Cmd:      cmd,
+		Cmd:      cmdOrOpt,
 		Args:     args,
 		Operator: tok,
 		Opt:      opt,
@@ -70,7 +77,7 @@ func parseTokAndCmd(toks map[string]bool, comb string, tok string) logger.Job {
 	return job
 }
 
-func Parse(cmds map[string]logger.Cmd, stream string) (logger.Job, error) {
+func Parse(cmds map[string]logger.Cmd, stream string) ([]logger.Job, error) {
 	tokens := map[string]bool{
 		">": true,
 		"$": true, // substitute for >>
@@ -80,7 +87,7 @@ func Parse(cmds map[string]logger.Cmd, stream string) (logger.Job, error) {
 	stream = sanitize(stream) // removes whitespace and replaces >> with $
 
 	if stream == "" {
-		return logger.Job{}, errors.New(stream)
+		return []logger.Job{}, errors.New(stream)
 	}
 
 	var job logger.Job
@@ -97,12 +104,12 @@ func Parse(cmds map[string]logger.Cmd, stream string) (logger.Job, error) {
 		job.Cmd = arr[0]
 		job.Args = arr[1:]
 
-		return job, nil
+		return []logger.Job{job}, nil
 	}
 
 	// check if the stream starts/ends with an operator
 	if tokens[string(stream[0])] || tokens[string(stream[len(stream)-1])] {
-		return logger.Job{}, errors.New("not a super valid command")
+		return []logger.Job{}, errors.New("not a super valid command")
 	}
 
 	// store the individual commands seperately
@@ -134,7 +141,7 @@ func Parse(cmds map[string]logger.Cmd, stream string) (logger.Job, error) {
 	// 	delim = append(delim, del)
 	// }
 	// return out, delim, nil
-	return logger.Job{}, nil
+	return []logger.Job{}, nil
 }
 
 func sanitize(str string) string {
