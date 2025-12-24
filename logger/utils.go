@@ -12,6 +12,12 @@ type Job struct {
 	Opt      string
 }
 
+type Job2 struct {
+	Background bool
+	Execs      []string
+	Opt        []string
+}
+
 func PrintJob(j Job) {
 	fmt.Println("Cmd: "+j.Cmd, "Args: ", j.Args, "Operator: "+j.Operator, "Opt: "+j.Opt)
 }

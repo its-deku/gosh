@@ -29,7 +29,9 @@ func main() {
 		if err != nil || inp == "exit" {
 			return
 		}
-		logger.Log(parseInput(commands, inp))
+		logger.Log(commands)
+		// logger.Log(parseInput(commands, inp))
+		logger.Log(parser.ShellParse(inp))
 	}
 }
 

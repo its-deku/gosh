@@ -152,5 +152,12 @@ func sanitize(str string) string {
 		return str
 	}
 
-	return strings.ReplaceAll(str, ">>", "$")
+	temp := []string{}
+	for chunk := range strings.SplitSeq(str, " ") {
+		if chunk != "" && chunk != " " {
+			temp = append(temp, chunk)
+		}
+	}
+
+	return strings.ReplaceAll(strings.Join(temp, " "), ">>", "$")
 }
